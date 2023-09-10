@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+
+<launch>
+  <arg name="model1" default="$(find velodyne_description)/urdf/example.urdf.xacro"/>
+  <arg name="model2" default="$(find velodyne_description)/urdf/example2.urdf.xacro"/>
+  <arg name="namespace1" default="/"/>
+  <arg name="namespace2" value="/rb2/"/>
+  <arg name="world_name" value="$(find erp42_vehicle_gazebo)/worlds/whiteroad.world"/>
+  <arg name="cmd_timeout" default="0.5"/>
+
+  <!-- Vehicle pose -->
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="-19.95"/>
+  <arg name="z" default="0.1"/>
+  <arg name="roll" default="0.0"/>
+  <arg name="pitch" default="0.0"/>
+  <arg name="yaw" default="3.14"/>
+
+    <!-- Vehicle pose -->
+  <arg name="x2" default="10.0"/>
+  <arg name="y2" default="-20.95"/>
+  <arg name="z2" default="0.1"/>
+  <arg name="roll2" default="0.0"/>
+  <arg name="pitch2" default="0.0"/>
+  <arg name="yaw2" default="3.14"/>
+
+
+
+    <!-- Create the world. -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(arg world_name)"/>
+    </include>
+
+  <group ns="$(arg namespace1)">
+    <!-- Load the robot description -->
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model1)"/>
+      <remap from="/ackermann_steering_controller/cmd_vel" to="/cmd_vel" />
+  <remap from="/ackermann_steering_controller/odom" to="/odom" />
+    <!--  <param name="tf_prefix" value="robot1_tf"/> -->
+
+    <!-- Load ros_controllers configuration parameters -->
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_ackermann_steering_controller.yaml" command="load" ns="$(arg namespace1)" />
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_gains.yaml" command="load" ns="$(arg namespace1)" />
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_joint_state_publisher.yaml" command="load" ns="$(arg namespace1)" />
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_steer_bot_hardware_gazebo.yaml" command="load" ns="$(arg namespace1)" />
+
+<!-- Spawn the controllers -->
+    <node pkg="controller_manager" type="spawner" name="controller_spawner" ns="$(arg namespace1)"
+        args="joint_state_publisher ackermann_steering_controller"
+        respawn="false">
+    </node>
+
+    <!-- Launch  the robot state publisher -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+        <param name="publish_frequency" value="50.0"/>
+    </node>
+
+    <!-- Launch a rqt steering GUI for publishing to /steer_bot/steer_drive_controller/cmd_vel -->
+      <!-- <node pkg="rqt_robot_steering" type="rqt_robot_steering" name="rqt_robot_steering" >
+            <param name="default_topic" value="$(arg namespace)/ackermann_steering_controller/cmd_vel"/>
+    </node> -->
+
+    <!-- Spawn the vehicle. -->
+    <node name="spawn_vehicle" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+          args="-urdf -param robot_description -model erp42_vehicle1
+                
+                -x $(arg x) -y $(arg y) -z $(arg z)
+                -R $(arg roll) -P $(arg pitch) -Y $(arg yaw)"/>
+<!-- -gazebo_namespace /$(arg namespace1)/gazebo-->
+    <!-- Load the joint controllers. One of these publishes the joint states
+         to joint_states. -->
+<!-- 
+    <node pkg="velodyne_laserscan" type="velodyne_laserscan_node" name="velodyne_laserscan_node" output="screen"/>-->
+  </group>
+
+<group ns="$(arg namespace2)">
+    <!-- Create the world. 
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(arg world_name)"/>
+    </include>-->
+    <!-- Load the robot description -->
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model2)"/>
+      <remap from="/ackermann_steering_controller/cmd_vel" to="/cmd_vel" />
+  <remap from="/ackermann_steering_controller/odom" to="/odom" />
+  <!-- <param name="tf_prefix" value="robot2_tf"/>  -->
+    <!-- Load ros_controllers configuration parameters -->
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_ackermann_steering_controller.yaml" command="load" ns="$(arg namespace2)" />
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_gains.yaml" command="load" ns="$(arg namespace2)" />
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_joint_state_publisher.yaml" command="load" ns="$(arg namespace2)" />
+    <rosparam file="$(find erp42_gazebo_control)/config/ctrl_steer_bot_hardware_gazebo.yaml" command="load" ns="$(arg namespace2)" />
+
+<!-- Spawn the controllers -->
+    <node pkg="controller_manager" type="spawner" name="controller_spawner" ns="$(arg namespace2)"
+        args="joint_state_publisher ackermann_steering_controller"
+        respawn="false">
+    </node>
+
+    <!-- Launch  the robot state publisher -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"> 
+        <param name="publish_frequency" value="50.0"/>
+    </node>
+
+    <!-- Launch a rqt steering GUI for publishing to /steer_bot/steer_drive_controller/cmd_vel -->
+      <!-- <node pkg="rqt_robot_steering" type="rqt_robot_steering" name="rqt_robot_steering" >
+            <param name="default_topic" value="$(arg namespace)/ackermann_steering_controller/cmd_vel"/>
+    </node> -->
+
+    <!-- Spawn the vehicle. -->
+    <node name="spawn_vehicle" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+          args="-urdf -param robot_description -model erp42_vehicle2
+                -x $(arg x2) -y $(arg y2) -z $(arg z2)
+                -R $(arg roll2) -P $(arg pitch2) -Y $(arg yaw2)"/>
+
+    <!-- Load the joint controllers. One of these publishes the joint states
+         to joint_states. -->
+<!--
+    <node pkg="velodyne_laserscan" type="velodyne_laserscan_node" name="velodyne_laserscan_node" output="screen"/> -->
+  </group>
+
+    <!-- RViz -->
+  <arg name="rviz" default="true"/>
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="$(anon rviz)" respawn="false" output="screen" args="-d $(find velodyne_description)/rviz/example.rviz" />
+
+</launch>
