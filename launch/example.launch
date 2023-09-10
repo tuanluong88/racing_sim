@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <launch>
-  <arg name="model1" default="$(find velodyne_description)/urdf/example.urdf.xacro"/>
-  <arg name="model2" default="$(find velodyne_description)/urdf/example2.urdf.xacro"/>
+  <arg name="model1" default="$(find racing_sim)/urdf/example.urdf.xacro"/>
+  <arg name="model2" default="$(find racing_sim)/urdf/example2.urdf.xacro"/>
   <arg name="namespace1" default="/"/>
   <arg name="namespace2" value="/rb2/"/>
   <arg name="world_name" value="$(find erp42_vehicle_gazebo)/worlds/whiteroad.world"/>
@@ -119,6 +119,6 @@
 
     <!-- RViz -->
   <arg name="rviz" default="true"/>
-  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="$(anon rviz)" respawn="false" output="screen" args="-d $(find velodyne_description)/rviz/example.rviz" />
+  <node if="$(arg rviz)" pkg="rviz" type="rviz" name="$(anon rviz)" respawn="false" output="screen" args="-d $(find racing_sim)/rviz/example.rviz" />
 
 </launch>
